@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <crtdbg.h>
 #include <ctype.h>
-#include <locale.h>
 #include <time.h>
 
 struct obrazPGM
@@ -56,7 +55,7 @@ int lepszyScanfDoInta()
 	}
 }
 
-void odczyt(struct obrazPGM* oryginal, int *czyOdczytany)
+void odczyt(struct obrazPGM* oryginal, int* czyOdczytany)
 {
 	printf("\nWprowadz nazwe pliku(np. mojObraz.pgm): ");
 	scanf("%99s", oryginal->nazwa_pliku);
@@ -71,7 +70,9 @@ void odczyt(struct obrazPGM* oryginal, int *czyOdczytany)
 		pomijanieKomentarzy(plik);
 		fscanf(plik, "%2s", oryginal->standard);
 		pomijanieKomentarzy(plik);
-		fscanf(plik, "%d %d", &oryginal->szerokosc, &oryginal->wysokosc);
+		fscanf(plik, "%d", &oryginal->szerokosc);
+		pomijanieKomentarzy(plik);
+		fscanf(plik, "%d", &oryginal->wysokosc);
 		pomijanieKomentarzy(plik);
 		fscanf(plik, "%d", &oryginal->glebia);
 
@@ -104,7 +105,7 @@ void zapis(char* nazwa_pliku, struct obrazPGM* oryginal, int* czyOdczytany)
 	{
 		printf("\nProgram napotkal problem podczas otwierania pliku!\n");
 	}
-	else 
+	else
 	{
 		fprintf(plik, "%s\n", oryginal->standard);
 		fprintf(plik, "%d %d\n", oryginal->szerokosc, oryginal->wysokosc);
@@ -124,108 +125,92 @@ void zapis(char* nazwa_pliku, struct obrazPGM* oryginal, int* czyOdczytany)
 	}
 }
 
-void obrotObrazu(struct obrazPGM* oryginal)
+void odbicie(struct obrazPGM* oryginal)
 {
 	int menu = -1;
 	do
 	{
-		printf("\n----------- MENU -----------\n1. Obrot o 90\n2. Obrot o 180\n3. obrot o 270\n0. anuluj\n----------------------------\nWybierz opcje: ");
+		printf("\n----------- ODBCIE -----------\n1. Wzgledem osi poziomej\n2. Wzgledem osi pionowej\n0. Anuluj\n----------------------------\nWybierz opcje: ");
 		menu = lepszyScanfDoInta();
 		switch (menu)
 		{
-			case 0:
-				break;
-			case 1:
+		case 0:
+			break;
+		case 1:
+		{
+			int** pomocnicza;
+			pomocnicza = malloc(oryginal->wysokosc * sizeof(int*));
+
+			for (int i = 0; i < oryginal->wysokosc; i++)
 			{
-				int** pomocnicza;
-				int nowaWysokosc = oryginal->szerokosc;
-				int nowaSzerokosc = oryginal->wysokosc;
-				pomocnicza = malloc(nowaWysokosc * sizeof(int*));
-
-				for (int i = 0; i < nowaWysokosc; i++)
-				{
-					pomocnicza[i] = malloc(nowaSzerokosc * sizeof(int));
-				}
-
-				for (int i = 0; i < nowaWysokosc; i++)
-				{
-					for (int j = 0; j < nowaSzerokosc; j++)
-					{
-						pomocnicza[i][j] = oryginal->piksele[oryginal->wysokosc - 1 - j][i];
-					}
-				}
-
-				zwalnianiePamieci(oryginal);
-
-				oryginal->piksele = pomocnicza;
-				oryginal->wysokosc = nowaWysokosc;
-				oryginal->szerokosc = nowaSzerokosc;
-				break;
+				pomocnicza[i] = malloc(oryginal->szerokosc * sizeof(int));
 			}
-			case 2:
+
+			for (int i = 0; i < oryginal->wysokosc; i++)
 			{
-				for (int i = 0; i < 2; i++)
+				for (int j = 0; j < oryginal->szerokosc; j++)
 				{
-					int** pomocnicza;
-					int nowaWysokosc = oryginal->szerokosc;
-					int nowaSzerokosc = oryginal->wysokosc;
-					pomocnicza = malloc(nowaWysokosc * sizeof(int*));
-
-					for (int i = 0; i < nowaWysokosc; i++)
-					{
-						pomocnicza[i] = malloc(nowaSzerokosc * sizeof(int));
-					}
-
-					for (int i = 0; i < nowaWysokosc; i++)
-					{
-						for (int j = 0; j < nowaSzerokosc; j++)
-						{
-							pomocnicza[i][j] = oryginal->piksele[oryginal->wysokosc - 1 - j][i];
-						}
-					}
-
-					zwalnianiePamieci(oryginal);
-
-					oryginal->piksele = pomocnicza;
-					oryginal->wysokosc = nowaWysokosc;
-					oryginal->szerokosc = nowaSzerokosc;
+					pomocnicza[i][j] = oryginal->piksele[oryginal->wysokosc - 1 - i][j];
 				}
-				break;
 			}
-			case 3:
+
+			zwalnianiePamieci(oryginal);
+			oryginal->piksele = pomocnicza;
+			printf("\nOdbicie obrazu wzgledem osi poziomej zostalo przeprowadzone.\n");
+			break;
+		}
+		case 2:
+		{
+			int** pomocnicza;
+			pomocnicza = malloc(oryginal->wysokosc * sizeof(int*));
+
+			for (int i = 0; i < oryginal->wysokosc; i++)
 			{
-				for (int i = 0; i < 3; i++)
+				pomocnicza[i] = malloc(oryginal->szerokosc * sizeof(int));
+			}
+
+			for (int i = 0; i < oryginal->wysokosc; i++)
+			{
+				for (int j = 0; j < oryginal->szerokosc; j++)
 				{
-					int** pomocnicza;
-					int nowaWysokosc = oryginal->szerokosc;
-					int nowaSzerokosc = oryginal->wysokosc;
-					pomocnicza = malloc(nowaWysokosc * sizeof(int*));
-
-					for (int i = 0; i < nowaWysokosc; i++)
-					{
-						pomocnicza[i] = malloc(nowaSzerokosc * sizeof(int));
-					}
-
-					for (int i = 0; i < nowaWysokosc; i++)
-					{
-						for (int j = 0; j < nowaSzerokosc; j++)
-						{
-							pomocnicza[i][j] = oryginal->piksele[oryginal->wysokosc - 1 - j][i];
-						}
-					}
-
-					zwalnianiePamieci(oryginal);
-
-					oryginal->piksele = pomocnicza;
-					oryginal->wysokosc = nowaWysokosc;
-					oryginal->szerokosc = nowaSzerokosc;
+					pomocnicza[i][j] = oryginal->piksele[i][oryginal->szerokosc - 1 - j];
 				}
-				break;
 			}
-			default:
-				printf("\nNieprawidlowa opcja!\n");
-			}
+
+			zwalnianiePamieci(oryginal);
+			oryginal->piksele = pomocnicza;
+			printf("\nOdbicie obrazu wzgledem osi pionowej zostalo przeprowadzone.\n");
+			break;
+		}
+		default:
+			printf("\nNieprawidlowa opcja!\n");
+		}
 	} while (menu == -1);
+}
+
+void szum(struct obrazPGM* oryginal)
+{
+	printf("Wprowadz procentowa wartosc prawdopodobienstwa zaszumienia: ");
+	int prawdopodobienstwo = lepszyScanfDoInta();
+
+	for (int i = 0; i < oryginal->wysokosc; i++)
+	{
+		for (int j = 0; j < oryginal->szerokosc; j++)
+		{
+			if ((rand() % 100) < prawdopodobienstwo)
+			{
+				if (rand() % 2)
+				{
+					oryginal->piksele[i][j] = 0;
+				}
+				else
+				{
+					oryginal->piksele[i][j] = oryginal->glebia;
+				}
+			}
+		}
+	}
+	printf("\nObraz zostal zaszumiony.\n");
 }
 
 void negatyw(struct obrazPGM* oryginal)
@@ -274,96 +259,8 @@ void histogram(struct obrazPGM* oryginal, char* nazwa_pliku)
 	}
 }
 
-void odbicie(struct obrazPGM* oryginal)
-{
-	int menu = -1;
-	do
-	{
-		printf("\n----------- ODBCIE -----------\n1. Odbicie pionowe\n2. Odbicie poziome\n0. anuluj\n----------------------------\nWybierz opcje: ");
-		menu = lepszyScanfDoInta();
-		switch (menu)
-		{
-			case 0:
-				break;
-			case 1:
-			{
-				int** pomocnicza;
-				pomocnicza = malloc(oryginal->wysokosc * sizeof(int*));
-
-				for (int i = 0; i < oryginal->wysokosc; i++)
-				{
-					pomocnicza[i] = malloc(oryginal->szerokosc * sizeof(int));
-				}
-
-				for (int i = 0; i < oryginal->wysokosc; i++)
-				{
-					for (int j = 0; j < oryginal->szerokosc; j++)
-					{
-						pomocnicza[i][j] = oryginal->piksele[oryginal->wysokosc -1 - i][j];
-					}
-				}
-
-				zwalnianiePamieci(oryginal);
-
-				oryginal->piksele = pomocnicza;
-				break;
-			}
-			case 2:
-			{
-				int** pomocnicza;
-				pomocnicza = malloc(oryginal->wysokosc * sizeof(int*));
-
-				for (int i = 0; i < oryginal->wysokosc; i++)
-				{
-					pomocnicza[i] = malloc(oryginal->szerokosc * sizeof(int));
-				}
-
-				for (int i = 0; i < oryginal->wysokosc; i++)
-				{
-					for (int j = 0; j < oryginal->szerokosc; j++)
-					{
-						pomocnicza[i][j] = oryginal->piksele[i][oryginal->szerokosc - 1 - j];
-					}
-				}
-
-				zwalnianiePamieci(oryginal);
-
-				oryginal->piksele = pomocnicza;
-				break;
-			}
-			default:
-				printf("\nNieprawidlowa opcja!\n");
-		}
-	} while (menu == -1);
-}
-
-void szum(struct obrazPGM* oryginal)
-{
-	printf("Wprowadz procentowa wartosc prawdopodobienstwa zaszumienia: ");
-	int prawdopodobienstwo = lepszyScanfDoInta();
-
-	for (int i = 0; i < oryginal->wysokosc; i++)
-	{
-		for (int j = 0; j < oryginal->szerokosc; j++)
-		{
-			if ((rand() % 100) < prawdopodobienstwo)
-			{
-				if (rand() % 2)
-				{
-					oryginal->piksele[i][j] = 0;
-				}
-				else
-				{
-					oryginal->piksele[i][j] = oryginal->glebia;
-				}
-			}
-		}
-	}
-}
-
 int main()
 {
-	setlocale(LC_ALL, "polish_poland");
 	srand(time(NULL));
 	struct obrazPGM oryginal;
 	oryginal.piksele = NULL;
@@ -372,67 +269,90 @@ int main()
 	int menu = -1;
 	while (menu != 0)
 	{
-		printf("\n----------- MENU -----------\n1. Odczyt\n2. Zapis\n0. Zakonczenie programu\n3.obrot\n4.negatyw\n5. histogram\n6.odbicie\n7. szum\n----------------------------\nWybierz opcje: ");
+		printf("\n----------- MENU -----------\n1. Odczyt\n2. Odbicie\n3. Wprowadzenie szumu\n4. Zapis\n5. Negatyw\n6. Histogram\n0. Zakonczenie programu\n----------------------------\nWybierz opcje: ");
 		menu = lepszyScanfDoInta();
 		switch (menu)
 		{
-			case 0:
+		case 0:
+		{
+			printf("\nZakonczenie programu.\n");
+			break;
+		}
+		case 1:
+		{
+			if (oryginal.piksele != NULL)
 			{
-				printf("\nZakonczenie programu.\n");
-				break;
+				zwalnianiePamieci(&oryginal);
 			}
-			case 1:			
-			{
-				if (oryginal.piksele != NULL)
-				{
-					zwalnianiePamieci(&oryginal);
-				}
-				odczyt(&oryginal, &czyOdczytany);
-				break;
-			}
-			case 2:
-			{
-				if (czyOdczytany)
-				{
-					zapis("nowy.pgm", &oryginal, &czyOdczytany);
-					zwalnianiePamieci(&oryginal);
-				}
-				else
-				{
-					printf("\nMusisz najpierw odczytac plik!\n");
-				}
-				break;
-			}
-			case 3:
-			{
-				obrotObrazu(&oryginal);
-				break;
-			}
-			case 4:
-			{
-				negatyw(&oryginal);
-				break;
-			}
-			case 5:
-			{
-				histogram(&oryginal, "histogram.csv");
-				break;
-			}
-			case 6:
+			odczyt(&oryginal, &czyOdczytany);
+			break;
+		}
+		case 2:
+		{
+			if (czyOdczytany)
 			{
 				odbicie(&oryginal);
-				break;
 			}
-			case 7:
+			else
+			{
+				printf("\nMusisz najpierw odczytac plik!\n");
+			}
+			break;
+		}
+		case 3:
+		{
+			if (czyOdczytany)
 			{
 				szum(&oryginal);
-				break;
 			}
-			default:
+			else
 			{
-				printf("\nNieprawidlowa opcja!\n");
+				printf("\nMusisz najpierw odczytac plik!\n");
+			}
+			break;
+		}
+		case 4:
+		{
+			if (czyOdczytany)
+			{
+				zapis("nowy.pgm", &oryginal, &czyOdczytany);
+				zwalnianiePamieci(&oryginal);
 				_CrtDumpMemoryLeaks();
 			}
+			else
+			{
+				printf("\nMusisz najpierw odczytac plik!\n");
+			}
+			break;
+		}
+		case 5:
+		{
+			if (czyOdczytany)
+			{
+				negatyw(&oryginal);
+			}
+			else
+			{
+				printf("\nMusisz najpierw odczytac plik!\n");
+			}
+			break;
+		}
+		case 6:
+		{
+			if (czyOdczytany)
+			{
+				histogram(&oryginal, "histogram.csv");
+			}
+			else
+			{
+				printf("\nMusisz najpierw odczytac plik!\n");
+			}
+			break;
+		}
+		default:
+		{
+			printf("\nNieprawidlowa opcja!\n");
+		}
 		}
 	}
 }
