@@ -1,0 +1,166 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include <time.h>
+#include <crtdbg.h>
+#include <string.h>
+
+struct element
+{
+    struct element* poprzedni;
+    char tytul[50];
+    int rok;
+    char wydawca[50];
+    char platformy[50];
+    int ocena;
+    struct element* nastepny;
+};
+
+struct odczytane
+{
+    char tytul[50];
+    int rok;
+    char wydawca[50];
+    char platformy[50];
+    int ocena;
+};
+
+int ileElementow()
+{
+    FILE* plik = fopen("gry.csv", "r");
+    char bufor[256];
+    fgets(bufor, sizeof(bufor), plik);
+    int licznik = 0;
+    while (fgets(bufor, sizeof(bufor), plik))
+    {
+        licznik++;
+    }
+    fclose(plik);
+    return licznik;
+}
+
+void wczytajPlik(struct element** poczatek, struct element** koniec)
+{
+    FILE* plik = fopen("gry.csv", "r");
+    char bufor[250];
+    fgets(bufor, sizeof(bufor), plik);
+    int n = ileElementow();
+    for (int i = 0; i < n; i++)
+    {
+        struct odczytane* pomocnicza = malloc(sizeof(struct odczytane));
+
+        fscanf(plik, "%[^;];%d;%[^;];%[^;];%d\n", pomocnicza->tytul, &pomocnicza->rok, pomocnicza->wydawca, pomocnicza->platformy, &pomocnicza->ocena);
+
+        struct element* nowy = malloc(sizeof(struct element));
+
+        strcpy(nowy->tytul, pomocnicza->tytul);
+        nowy->rok = pomocnicza->rok;
+        strcpy(nowy->wydawca, pomocnicza->wydawca);
+        strcpy(nowy->platformy, pomocnicza->platformy);
+        nowy->ocena = pomocnicza->ocena;
+        nowy->nastepny = NULL;
+
+        if (*poczatek == NULL)
+        {
+            nowy->poprzedni = NULL;
+            *poczatek = nowy;
+            *koniec = nowy;
+        }
+        else
+        {
+            nowy->poprzedni = *koniec;
+            (*koniec)->nastepny = nowy;
+            *koniec = nowy;
+        }
+
+        printf("\nPlik zostal wczytany.\n\n");
+        free(pomocnicza);
+    }
+    fclose(plik);
+}
+
+void wyswietlDane(struct element* element)
+{
+    printf("%s ; %d ; %s ; %s ; %d\n", element->tytul, element->rok, element->wydawca, element->platformy, element->ocena);
+}
+
+void wyswietlanieListy(struct element* poczatek)
+{
+    struct element* pomocniczy = poczatek;
+    while (pomocniczy != NULL)
+    {
+        wyswietlDane(pomocniczy);
+        pomocniczy = pomocniczy->nastepny;
+    }
+}
+
+void czyszczenieListy(struct element* poczatek)
+{
+    struct element* pomocniczy = poczatek;
+    while (pomocniczy != NULL)
+    {
+        struct element* doUsuniecia = pomocniczy;
+        pomocniczy = pomocniczy->nastepny;
+        free(doUsuniecia);
+    }
+}
+
+void swap_sasiednie(struct element** poczatek, struct element** koniec, struct element* lewy)
+{
+    struct element* prawy = lewy->nastepny;
+    if (prawy == NULL) return;
+
+    struct element* A = lewy->poprzedni;
+    struct element* B = prawy->nastepny;
+
+    if (A) A->nastepny = prawy;
+    else *poczatek = prawy;
+    prawy->poprzedni = A;
+
+    prawy->nastepny = lewy;
+    lewy->poprzedni = prawy;
+
+    lewy->nastepny = B;
+    if (B) B->poprzedni = lewy;
+    else *koniec = lewy;
+}
+
+void sortuj_po_tytule(struct element** poczatek, struct element** koniec)
+{
+    int bylo_zamian;
+    do
+    {
+        bylo_zamian = 0;
+        struct element* cur = *poczatek;
+
+        while (cur && cur->nastepny)
+        {
+            if (_stricoll(cur->tytul, cur->nastepny->tytul) > 0)
+            {
+                swap_sasiednie(poczatek, koniec, cur);
+                bylo_zamian = 1;
+            }
+            else
+            {
+                cur = cur->nastepny;
+            }
+        }
+    } while (bylo_zamian);
+}
+
+
+int main()
+{
+    struct element* poczatek = NULL;
+    struct element* koniec = NULL;
+
+    wczytajPlik(&poczatek, &koniec);
+    wyswietlanieListy(poczatek);
+    sortuj_po_tytule(&poczatek, &koniec);
+    printf("\n\n\n");
+    wyswietlanieListy(poczatek);
+    czyszczenieListy(poczatek);
+    _CrtDumpMemoryLeaks();
+    return 0;
+}
