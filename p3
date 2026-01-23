@@ -1,0 +1,648 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include <time.h>
+#include <crtdbg.h>
+#include <string.h>
+
+struct element
+{
+    struct element* poprzedni;
+    char tytul[50];
+    int rok;
+    char wydawca[50];
+    char platformy[50];
+    int ocena;
+    struct element* nastepny;
+};
+
+struct odczytane
+{
+    char tytul[50];
+    int rok;
+    char wydawca[50];
+    char platformy[50];
+    int ocena;
+};
+
+int lepszyScanfDoInta()
+{
+    int liczba;
+    while (1)
+    {
+        if (!scanf("%d", &liczba))
+        {
+            while ('\n' != getchar());
+            printf("Sprobuj ponownie: ");
+        }
+        else return liczba;
+    }
+}
+
+int ileElementow()
+{
+    FILE* plik = fopen("gry.csv", "r");
+    char bufor[256];
+    fgets(bufor, sizeof(bufor), plik);
+    int licznik = 0;
+    while (fgets(bufor, sizeof(bufor), plik))
+    {
+        licznik++;
+    }
+    fclose(plik);
+    return licznik;
+}
+
+void wczytajPlik(struct element** poczatek, struct element** koniec)
+{
+    FILE* plik = fopen("gry.csv", "r");
+    char bufor[250];
+    fgets(bufor, sizeof(bufor), plik);
+    int n = ileElementow();
+    for (int i = 0; i < n; i++)
+    {
+        struct odczytane* pomocnicza = malloc(sizeof(struct odczytane));
+
+        fscanf(plik, "%[^;];%d;%[^;];%[^;];%d\n", pomocnicza->tytul, &pomocnicza->rok, pomocnicza->wydawca, pomocnicza->platformy, &pomocnicza->ocena);
+
+        struct element* nowy = malloc(sizeof(struct element));
+
+        strcpy(nowy->tytul, pomocnicza->tytul);
+        nowy->rok = pomocnicza->rok;
+        strcpy(nowy->wydawca, pomocnicza->wydawca);
+        strcpy(nowy->platformy, pomocnicza->platformy);
+        nowy->ocena = pomocnicza->ocena;
+        nowy->nastepny = NULL;
+
+        if (*poczatek == NULL)
+        {
+            nowy->poprzedni = NULL;
+            *poczatek = nowy;
+            *koniec = nowy;
+        }
+        else
+        {
+            nowy->poprzedni = *koniec;
+            (*koniec)->nastepny = nowy;
+            *koniec = nowy;
+        }
+        ;
+        free(pomocnicza);
+    }
+    fclose(plik);
+}
+
+void dodajElement(int jakPosortowane, struct element** poczatek, struct element** koniec)
+{
+    int rok, ocena;
+    char tytul[50], wydawca[50], platformy[50];
+    printf("\nPodaj tytul: ");
+    scanf("%s", tytul);
+    printf("\nPodaj rok: ");
+    scanf("%d", &rok);
+    printf("\nPodaj wydawce: ");
+    scanf("%s", wydawca);
+    printf("\nPodaj platformy: ");
+    scanf("%s", platformy);
+    printf("\nPodaj ocene: ");
+    scanf("%d", &ocena);
+
+    struct element* nowy = malloc(sizeof(struct element));
+
+    strcpy(nowy->tytul, tytul);
+    nowy->rok = rok;
+    strcpy(nowy->wydawca, wydawca);
+    strcpy(nowy->platformy, platformy);
+    nowy->ocena = ocena;
+
+    if (jakPosortowane == 0)
+    {
+        nowy->nastepny = NULL;
+        nowy->poprzedni = *koniec;
+        (*koniec)->nastepny = nowy;
+        *koniec = nowy;
+        return;
+    }
+    if (jakPosortowane == 2)
+    {
+        struct element* E = *poczatek;
+        while (_stricoll(E->tytul, nowy->tytul) < 0)
+        {
+            E = E->nastepny;
+        }
+
+        if (E == *poczatek)
+        {
+            nowy->nastepny = E;
+            E->poprzedni = nowy;
+            *poczatek = nowy;
+            return;
+        }
+
+        if (E == NULL) 
+        {
+            struct element* pomocnicza = *poczatek;
+            while (pomocnicza->nastepny) pomocnicza = pomocnicza->nastepny;
+
+            pomocnicza->nastepny = nowy;
+            nowy->poprzedni = pomocnicza;
+            return;
+        }
+
+        nowy->nastepny = E;
+        nowy->poprzedni = E->poprzedni;
+        E->poprzedni = nowy;
+        nowy->poprzedni->nastepny = nowy;
+        return;
+    }
+
+    if (jakPosortowane == 3)
+    {
+        struct element* E = *poczatek;
+        while (_stricoll(E->wydawca, nowy->wydawca) < 0)
+        {
+            E = E->nastepny;
+        }
+
+        if (E == *poczatek)
+        {
+            nowy->nastepny = E;
+            E->poprzedni = nowy;
+            *poczatek = nowy;
+            return;
+        }
+
+        if (E == NULL)
+        {
+            struct element* pomocnicza = *poczatek;
+            while (pomocnicza->nastepny) pomocnicza = pomocnicza->nastepny;
+
+            pomocnicza->nastepny = nowy;
+            nowy->poprzedni = pomocnicza;
+            return;
+        }
+
+        nowy->nastepny = E;
+        nowy->poprzedni = E->poprzedni;
+        E->poprzedni = nowy;
+        nowy->poprzedni->nastepny = nowy;
+        return;
+    }
+
+    if (jakPosortowane == 4)
+    {
+        struct element* E = *poczatek;
+        while (_stricoll(E->platformy, nowy->platformy) < 0)
+        {
+            E = E->nastepny;
+        }
+
+        if (E == *poczatek)
+        {
+            nowy->nastepny = E;
+            E->poprzedni = nowy;
+            *poczatek = nowy;
+            return;
+        }
+
+        if (E == NULL)
+        {
+            struct element* pomocnicza = *poczatek;
+            while (pomocnicza->nastepny) pomocnicza = pomocnicza->nastepny;
+
+            pomocnicza->nastepny = nowy;
+            nowy->poprzedni = pomocnicza;
+            return;
+        }
+
+        nowy->nastepny = E;
+        nowy->poprzedni = E->poprzedni;
+        E->poprzedni = nowy;
+        nowy->poprzedni->nastepny = nowy;
+        return;
+    }
+
+    if (jakPosortowane == 5)
+    {
+        struct element* E = *poczatek;
+        while ((E->rok) < (nowy->rok))
+        {
+            E = E->nastepny;
+        }
+
+        if (E == *poczatek)
+        {
+            nowy->nastepny = E;
+            E->poprzedni = nowy;
+            *poczatek = nowy;
+            return;
+        }
+
+        if (E == NULL)
+        {
+            struct element* pomocnicza = *poczatek;
+            while (pomocnicza->nastepny) pomocnicza = pomocnicza->nastepny;
+
+            pomocnicza->nastepny = nowy;
+            nowy->poprzedni = pomocnicza;
+            return;
+        }
+
+        nowy->nastepny = E;
+        nowy->poprzedni = E->poprzedni;
+        E->poprzedni = nowy;
+        nowy->poprzedni->nastepny = nowy;
+        return;
+    }
+
+    if (jakPosortowane == 6)
+    {
+        struct element* E = *poczatek;
+
+        while ((E->ocena) < (nowy->ocena))
+        {
+            E = E->nastepny;
+        }
+
+        if (E == *poczatek)
+        {
+            nowy->nastepny = E;
+            E->poprzedni = nowy;
+            *poczatek = nowy;
+        }
+
+        if (E == NULL)
+        {
+            struct element* pomocnicza = *poczatek;
+            while (pomocnicza->nastepny) pomocnicza = pomocnicza->nastepny;
+
+            pomocnicza->nastepny = nowy;
+            nowy->poprzedni = pomocnicza;
+            return;
+        }
+
+        nowy->nastepny = E;
+        nowy->poprzedni = E->poprzedni;
+        E->poprzedni = nowy;
+        nowy->poprzedni->nastepny = nowy;
+        return;
+    }
+}
+
+void usunElement(struct element** poczatek, struct element** koniec)
+{
+    int lp;
+    printf("Wybierz element: ");
+    scanf("%d", &lp);
+
+    struct element* E = *poczatek;
+    int i = 1;
+
+    while (E != NULL && i < lp)
+    {
+        E = E->nastepny;
+        i++;
+    }
+
+    if (E == *koniec)
+    {
+        *koniec = E->poprzedni;
+        (*koniec)->nastepny = NULL;
+    }
+    else if (E == *poczatek)
+    {
+        *poczatek = E->nastepny;
+        (*poczatek)->poprzedni = NULL;
+
+    }
+    else
+    {
+        E->poprzedni->nastepny = E->nastepny;
+        E->nastepny->poprzedni = E->poprzedni;
+    }
+    free(E);
+}
+
+void wyswietlDane(struct element* element, int* lp)
+{
+    printf("|%3d | %26s | %5d | %18s | %16s | %4d  |\n", lp, element->tytul, element->rok, element->wydawca, element->platformy, element->ocena);
+}
+
+void wyswietlanieListy(struct element* poczatek)
+{
+    struct element* pomocniczy = poczatek;
+    int lp = 1;
+    printf("\n.-----------------------------------------------------------------------------------------.\n");
+    printf("| lp |            tytul           |  rok  |       wydawca      |     platformy    | ocena |\n");
+    printf("|-----------------------------------------------------------------------------------------|\n");
+    while (pomocniczy != NULL)
+    {
+        wyswietlDane(pomocniczy, lp);
+        pomocniczy = pomocniczy->nastepny;
+        lp++;
+    }
+    printf("'-----------------------------------------------------------------------------------------'\n\n");
+}
+
+void czyszczenieListy(struct element* poczatek)
+{
+    struct element* pomocniczy = poczatek;
+    while (pomocniczy != NULL)
+    {
+        struct element* doUsuniecia = pomocniczy;
+        pomocniczy = pomocniczy->nastepny;
+        free(doUsuniecia);
+    }
+}
+
+void zamiana(struct  element** poczatek, struct element** koniec, struct element* E)
+{
+
+    //1 etap
+    if (E->poprzedni)
+    {
+        E->poprzedni->nastepny = E->nastepny;
+    }
+    else
+    {
+        *poczatek = E->nastepny;
+    }
+    E->nastepny->poprzedni = E->poprzedni;
+
+    //2 etap
+    E->poprzedni = E->nastepny;
+    E->nastepny = E->poprzedni->nastepny;
+
+    //3 etap
+    E->poprzedni->nastepny = E;
+    if (E->nastepny)
+    {
+        E->nastepny->poprzedni = E;
+    }
+    else
+    {
+        *koniec = E;
+    }
+}
+
+void sortujPoTytule(struct element** poczatek, struct element** koniec)
+{
+    int zmiana;
+    do
+    {
+        zmiana = 0;
+        struct element* aktualny = *poczatek;
+
+        while (aktualny && aktualny->nastepny)
+        {
+            if (_stricoll(aktualny->tytul, aktualny->nastepny->tytul) > 0)
+            {
+                zamiana(poczatek, koniec, aktualny);
+                zmiana = 1;
+            }
+            else
+            {
+                aktualny = aktualny->nastepny;
+            }
+        }
+    } while (zmiana);
+    printf("\nSortowanie po tytule zostalo wykonane.\n\n");
+}
+
+void sortujPoWydawcy(struct element** poczatek, struct element** koniec)
+{
+    int zmiana;
+    do
+    {
+        zmiana = 0;
+        struct element* aktualny = *poczatek;
+
+        while (aktualny && aktualny->nastepny)
+        {
+            if (_stricoll(aktualny->wydawca, aktualny->nastepny->wydawca) > 0)
+            {
+                zamiana(poczatek, koniec, aktualny);
+                zmiana = 1;
+            }
+            else
+            {
+                aktualny = aktualny->nastepny;
+            }
+        }
+    } while (zmiana);
+    printf("\nSortowanie po wydawcy zostalo wykonane.\n\n");
+}
+
+void sortujPoPlatformach(struct element** poczatek, struct element** koniec)
+{
+    int zmiana;
+    do
+    {
+        zmiana = 0;
+        struct element* aktualny = *poczatek;
+
+        while (aktualny && aktualny->nastepny)
+        {
+            if (_stricoll(aktualny->platformy, aktualny->nastepny->platformy) > 0)
+            {
+                zamiana(poczatek, koniec, aktualny);
+                zmiana = 1;
+            }
+            else
+            {
+                aktualny = aktualny->nastepny;
+            }
+        }
+    } while (zmiana);
+    printf("\nSortowanie po platformach zostalo wykonane.\n\n");
+}
+
+void sortujPoRoku(struct element** poczatek, struct element** koniec)
+{
+    int zmiana;
+    do
+    {
+        zmiana = 0;
+        struct element* aktualny = *poczatek;
+
+        while (aktualny && aktualny->nastepny)
+        {
+            if (aktualny->rok > aktualny->nastepny->rok)
+            {
+                zamiana(poczatek, koniec, aktualny);
+                zmiana = 1;
+            }
+            else
+            {
+                aktualny = aktualny->nastepny;
+            }
+        }
+    } while (zmiana);
+    printf("\nSortowanie po roku zostalo wykonane.\n\n");
+}
+
+void sortujPoOcenie(struct element** poczatek, struct element** koniec)
+{
+    int zmiana;
+    do
+    {
+        zmiana = 0;
+        struct element* aktualny = *poczatek;
+
+        while (aktualny && aktualny->nastepny)
+        {
+            if (aktualny->ocena > aktualny->nastepny->ocena)
+            {
+                zamiana(poczatek, koniec, aktualny);
+                zmiana = 1;
+            }
+            else
+            {
+                aktualny = aktualny->nastepny;
+            }
+        }
+    } while (zmiana);
+    printf("\nSortowanie po ocenie zostalo wykonane.\n\n");
+}
+
+
+void wyszukajElementy(struct element* poczatek)
+{
+    char fraza[50];
+    printf("\nPodaj fragment tekstu do wyszukania: ");
+    scanf("%s", fraza);
+
+    // konwersja wyszukiwanej frazy na małe litery
+    for (int i = 0; fraza[i]; i++)
+        fraza[i] = tolower(fraza[i]);
+
+    struct element* E = poczatek;
+    int lp = 1;
+    int znaleziono = 0;
+
+    printf("\n----- WYNIKI WYSZUKIWANIA -----\n");
+
+    while (E != NULL)
+    {
+        char tytul[50], wydawca[50], platformy[50];
+
+        // kopie pól w wersji lowercase
+        strcpy(tytul, E->tytul);
+        strcpy(wydawca, E->wydawca);
+        strcpy(platformy, E->platformy);
+
+        for (int i = 0; tytul[i]; i++) tytul[i] = tolower(tytul[i]);
+        for (int i = 0; wydawca[i]; i++) wydawca[i] = tolower(wydawca[i]);
+        for (int i = 0; platformy[i]; i++) platformy[i] = tolower(platformy[i]);
+
+        // szukanie fragmentu
+        if (strstr(tytul, fraza) || strstr(wydawca, fraza) || strstr(platformy, fraza))
+        {
+            wyswietlDane(E, lp);
+            znaleziono = 1;
+        }
+
+        E = E->nastepny;
+        lp++;
+    }
+
+    if (!znaleziono)
+        printf("\nBrak wyników.\n");
+
+    printf("\n--------------------------------\n");
+}
+
+
+int main()
+{
+    struct element* poczatek = NULL;
+    struct element* koniec = NULL;;
+    wczytajPlik(&poczatek, &koniec);
+    int jakSortowane = 0;
+
+    int menu = -1;
+    while (menu != 0)
+    {
+        printf("~~~~~~~~~~~~~~ MENU ~~~~~~~~~~~~~~\n");
+        printf("1. Wyswietl liste\n");
+        printf("2. Sortuj liste po tytule\n");
+        printf("3. Sortuj liste po wydawcy\n");
+        printf("4. Sortuj liste po platformach\n");
+        printf("5. Sortuj liste po roku\n");
+        printf("6. Sortuj liste po ocenie\n");
+        printf("7. Dodaj nowy element\n");
+        printf("8. Usun element\n");
+        printf("0. Zakonczenie programu\n");
+        printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+        printf("Wybierz opcje: ");
+        menu = lepszyScanfDoInta();
+        switch (menu)
+        {
+        case 0:
+        {
+            printf("\nZakonczenie programu.\n");
+            czyszczenieListy(poczatek);
+            break;
+        }
+        case 1:
+        {
+            wyswietlanieListy(poczatek);
+            break;
+        }
+        case 2:
+        {
+            sortujPoTytule(&poczatek, &koniec);
+            jakSortowane = 2;
+            break;
+        }
+        case 3:
+        {
+            sortujPoWydawcy(&poczatek, &koniec);
+            jakSortowane = 3;
+            break;
+        }
+        case 4:
+        {
+            sortujPoPlatformach(&poczatek, &koniec);
+            jakSortowane = 4;
+            break;
+        }
+        case 5:
+        {
+            sortujPoRoku(&poczatek, &koniec);
+            jakSortowane = 5;
+            break;
+        }
+        case 6:
+        {
+            sortujPoOcenie(&poczatek, &koniec);
+            jakSortowane = 6;
+            break;
+        }
+        case 7:
+        {
+            dodajElement(jakSortowane, &poczatek, &koniec);
+            break;
+        }
+        case 8:
+        {
+            usunElement(&poczatek, &koniec);
+            break;
+        }
+
+	case 9:
+	{
+    		wyszukajElementy(poczatek);
+    		break;
+	}
+
+        default:
+        {
+            printf("\nNieprawidlowa opcja!\n");
+        }
+        }
+    }
+    _CrtDumpMemoryLeaks();
+    return 0;
+}
