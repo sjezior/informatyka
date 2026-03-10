@@ -1,0 +1,74 @@
+#include <iostream>
+
+class Czas
+{
+private:
+	int godzina;
+	int minuta;
+	int sekunda;
+public:
+	int getGodzina();
+	int getMinuta();
+	int getSekunda();
+
+	void setGodzina();
+	void setMinuta();
+	void setSekunda();
+
+	void pokazCzas();
+};
+
+int Czas::getGodzina() {
+	return godzina;
+}
+
+int Czas::getMinuta() {
+	return minuta;
+}
+
+int Czas::getSekunda() {
+	return sekunda;
+}
+
+void Czas::setGodzina() {
+	int _godzina;
+	std::cout << "Podaj wartosc godzin: ";
+	std::cin >> _godzina;
+	godzina = _godzina;
+}
+
+void Czas::setMinuta() {
+	int _minuta;
+	std::cout << "Podaj wartosc minut: ";
+	std::cin >> _minuta;
+	while (_minuta > 59 || _minuta < 0) {
+		std::cout << "Wprowadzony czas nie miesci sie w przewidzianym przedziale. Sorobuj ponownie: ";
+		std::cin >> _minuta;
+	}
+	minuta = _minuta;
+}
+
+void Czas::setSekunda() {
+	int _sekunda;
+	std::cout << "Podaj wartosc sekund: ";
+	std::cin >> _sekunda;
+	while (_sekunda > 59 || _sekunda < 0) {
+		std::cout << "Wprowadzony czas nie miesci sie w przewidzianym przedziale. Sprobuj ponownie:";
+		std::cin >> _sekunda;
+	}
+	sekunda = _sekunda;
+}
+
+void Czas::pokazCzas() {
+	std::cout << "Czas: " << godzina << ":" << minuta << ":" << sekunda << std::endl;
+}
+
+int main() {
+	Czas mojCzas;
+	mojCzas.setGodzina();
+	mojCzas.setMinuta();
+	mojCzas.setSekunda();
+	mojCzas.pokazCzas();
+
+	return 0;
+}
