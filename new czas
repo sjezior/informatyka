@@ -1,0 +1,21 @@
+#include <iostream>
+
+class Czas {
+public:
+	int pokazGodzina();
+	int pokazMinuta();
+	int pokazSekunda();
+	void wypiszCzas();
+	void ustawCzas(int _sekunda);
+	void ustawCzas(int _sekunda, int _minuta);
+	void ustawCzas(int _sekunda, int _minuta, int _godzina);
+	Czas operator+(Czas& _czas);
+	bool operator<(Czas& _czas);
+private:
+	int godzina = 0;
+	int minuta = 0;
+	int sekunda = 0;
+	void ustawGodzina(int _godzina);
+	void ustawMinuta(int _minuta);
+	void ustawSekunda(int _sekunda);
+};
