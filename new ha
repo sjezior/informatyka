@@ -1,0 +1,12 @@
+class Harmonogram {
+public:
+	Harmonogram();
+	~Harmonogram();
+	void dodajCzas(Czas& c);
+	int ileCzasow();
+	void wypisz();
+	//Czas& operator[](int indeks);
+private:
+	Czas* tablica;
+	int rozmiar;
+};
