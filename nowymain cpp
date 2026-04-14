@@ -1,0 +1,51 @@
+#include "har.h"
+#include "czas.h"
+#include <iostream>
+
+int main() {
+
+	Czas c1, c2, c3, c4, c5;
+
+	//c1.ustawCzas(36, 24);
+	//c2.ustawCzas(34, 33, 12);
+	//c1.wypiszCzas();
+	//c2.wypiszCzas();
+	//c3 = c1 + c2;
+	//std::cout << "\nsuma c1 i c2 -> ";
+	//c3.wypiszCzas();
+	//std::cout << "czy c1 < c2 -> ";
+	//std::cout << (c1 < c2) << std::endl;
+	////std::cin.get();
+
+	c1.ustawCzas(0, 5, 0);
+	c2.ustawCzas(0, 10, 0);
+	c3.ustawCzas(0, 15, 0);
+	c4.ustawCzas(0, 20, 0);
+	c5.ustawCzas(0, 30, 0);
+
+	Harmonogram h1;
+	h1.dodajCzas(c1);
+	h1.dodajCzas(c2);
+	h1.dodajCzas(c3);
+	h1.dodajCzas(c4);
+	h1.dodajCzas(c5);
+	std::cout << "\nHarmonogram posiada " << h1.ileCzasow() << " czas/czasy/czasow." << std::endl;
+	h1.wypisz();
+	std::cout << "\n\n";
+	//Czas& ref = h1.zwrocRef(0);
+	//ref.ustawCzas(13);
+	//h1.wypisz();
+
+	Czas limit;
+	limit.ustawCzas(0, 30, 0);
+	Harmonogram h3(h1);
+	h3.wypisz();
+	Harmonogram h2;
+	h2 = h1.kopiuj(limit);
+	std::cout << "Kopia do limitu: ";
+	limit.wypiszCzas();
+	h2.wypisz();
+	h2 -= 2;
+	h2.wypisz();
+	return 0;
+}
