@@ -1,0 +1,171 @@
+kasyno cpp
+#include "karta.h"
+#include "kasyno.h"
+#include <iostream>
+
+// Konstruktor: tworzy talię i nie miesza — karty będą wydawane po kolei
+Kasyno::Kasyno() : indeks(0) {
+    int idx = 0;
+    for (int k = 0; k < 4; k++) {
+        for (int v = 0; v < 13; v++) {
+            talia[idx++] = Karta(k, v);
+        }
+    }
+
+    indeks = 0;
+
+    // podłącz graczy do kasyna
+    for (int i = 0; i < 3; i++) {
+        gracze[i].setKasyno(this);
+    }
+}
+
+Karta* Kasyno::dajKarte() {
+    if (indeks >= 52) return nullptr;
+    return &talia[indeks++];
+}
+
+void Kasyno::graj() {
+    // rozdanie po 2 karty dla kazdego gracza
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 2; j++) {
+            Karta* k = dajKarte();
+            gracze[i].wezKarte(k);
+        }
+    }
+
+    // pętla gry: każdy gracz po kolei decyduje, aż wszyscy spasują
+    while (true) {
+        for (int i = 0; i < 3; i++) {
+            if (!gracze[i].czyPasowal()) {
+                // przed pokazaniem "Aktualne karty i punkty: ..." wypisz etykietę Gracz A/B/C
+                char label = 'A' + i;
+                std::cout << "Gracz " << label << ": ";
+                gracze[i].zapytajIDobierz();
+            }
+        }
+
+        bool allPassed = true;
+        for (int i = 0; i < 3; i++) {
+            if (!gracze[i].czyPasowal()) { allPassed = false; break; }
+        }
+        if (allPassed) break;
+    }
+
+    // koniec gry - wypisz wyniki
+    std::cout << "\nKoniec gry. Wyniki:\n";
+    for (int i = 0; i < 3; i++) {
+        std::cout << "Gracz " << (i + 1) << ": ";
+        gracze[i].wypiszRekeISume();
+        std::cout << std::endl;
+    }
+}
+
+
+gracz cpp
+#include "Gracz.h"
+#include "Kasyno.h"
+#include <iostream>
+
+Gracz::Gracz(Kasyno* _kasyno)
+    : ile(0), suma(0), pasowal(false), kasyno(_kasyno) {
+}
+
+void Gracz::wezKarte(Karta* _karta) {
+    if (_karta == nullptr) return;
+    if (ile < 10) {
+        naRece[ile++] = _karta;
+        suma += _karta->getWartosc();
+    }
+}
+
+void Gracz::wypiszRekeISume() {
+    for (int i = 0; i < ile; i++) {
+        naRece[i]->wypisz();
+        std::cout << ' ';
+    }
+    std::cout << " Suma: " << suma;
+}
+
+bool Gracz::zapytajIDobierz() {
+    if (pasowal) return false;
+
+    std::cout << "Aktualne karty i punkty: ";
+    wypiszRekeISume();
+    std::cout << std::endl;
+
+    char odp = 0;
+    while (true) {
+        std::cout << "Czy dobierasz karte? (t/n): ";
+        std::cin >> odp;
+        if (odp == 't' || odp == 'T' || odp == 'n' || odp == 'N') break;
+        std::cout << "Niepoprawna odpowiedz. Wpisz 't' lub 'n'." << std::endl;
+    }
+
+    if (odp == 'n' || odp == 'N') {
+        pasowal = true;
+        return false;
+    }
+
+    if (kasyno == nullptr) {
+        std::cout << "Brak polaczenia z kasynem." << std::endl;
+        pasowal = true;
+        return false;
+    }
+
+    Karta* k = kasyno->dajKarte();
+    if (k == nullptr) {
+        std::cout << "Brak kart w talii." << std::endl;
+        pasowal = true;
+        return false;
+    }
+
+    wezKarte(k);
+    std::cout << "Dobrano: ";
+    k->wypisz();
+    std::cout << std::endl;
+    return true;
+}
+
+
+
+gracz h
+#pragma once
+#include "Karta.h"
+
+class Kasyno; // forward declaration
+
+class Gracz {
+private:
+    Karta* naRece[10];
+    int ile = 0;
+    int suma = 0;
+    bool pasowal = false;
+    Kasyno* kasyno = nullptr;
+public:
+    Gracz(Kasyno* _kasyno = nullptr);
+    void setKasyno(Kasyno* k) { kasyno = k; }
+    void wezKarte(Karta* _karta);
+    void wypiszRekeISume();
+    int ileKart() { return ile; }
+    int sumaPunktow() { return suma; }
+    bool czyPasowal() { return pasowal; }
+    // pyta gracza czy dobiera; jeśli tak, pobiera kartę z kasyna i zwraca true
+    bool zapytajIDobierz();
+};
+
+kasyno h
+#pragma once
+#include "karta.h"
+#include "Gracz.h"
+
+class Kasyno {
+private:
+    Karta talia[52];
+    Gracz gracze[3];
+    int indeks = 0;
+public:
+    Kasyno();
+    Karta* dajKarte();
+    void graj();
+};
